@@ -49,16 +49,14 @@ def self_heal(
     # log_path = dbs.workspace.path / "log.txt"
     if ENTRYPOINT_FILE not in files_dict:
         raise FileNotFoundError(
-            "The required entrypoint "
-            + ENTRYPOINT_FILE
-            + " does not exist in the code."
+            f"The required entrypoint {ENTRYPOINT_FILE} does not exist in the code."
         )
 
-    attempts = 0
     messages = []
     if preprompts_holder is None:
         raise AssertionError("Prepromptsholder required for self-heal")
     preprompts = preprompts_holder.get_preprompts()
+    attempts = 0
     while attempts < MAX_SELF_HEAL_ATTEMPTS:
         command = files_dict[ENTRYPOINT_FILE]
         print(
@@ -77,27 +75,24 @@ def self_heal(
         stdout_full, stderr_full, returncode = execution_env.upload(files_dict).run(
             f"bash {ENTRYPOINT_FILE}"
         )
-        # get the result and output
-        # step 2. if the return code not 0, package and send to the AI
-        if returncode != 0:
-            print("run.sh failed.  Let's fix it.")
-
-            # pack results in an AI prompt
-
-            # Using the log from the previous step has all the code and
-            # the gen_entrypoint prompt inside.
-            if attempts < 1:
-                messages: List[Message] = [SystemMessage(content=files_dict.to_chat())]
-                messages.append(SystemMessage(content=get_platform_info()))
-
-            messages.append(SystemMessage(content=stdout_full + "\n " + stderr_full))
-
-            messages = ai.next(
-                messages, preprompts["file_format_fix"], step_name=curr_fn()
-            )
-        else:  # the process did not fail, we are done here.
+        if returncode == 0:
             return files_dict
 
+        print("run.sh failed.  Let's fix it.")
+
+        # pack results in an AI prompt
+
+        # Using the log from the previous step has all the code and
+        # the gen_entrypoint prompt inside.
+        if attempts < 1:
+            messages: List[Message] = [SystemMessage(content=files_dict.to_chat())]
+            messages.append(SystemMessage(content=get_platform_info()))
+
+        messages.append(SystemMessage(content=stdout_full + "\n " + stderr_full))
+
+        messages = ai.next(
+            messages, preprompts["file_format_fix"], step_name=curr_fn()
+        )
         files_dict = {**files_dict, **chat_to_files_dict(messages[-1].content.strip())}
         attempts += 1
 
@@ -172,8 +167,7 @@ def clarified_gen(
     print()
     chat = messages[-1].content.strip()
     memory[CODE_GEN_LOG_FILE] = chat
-    files_dict = chat_to_files_dict(chat)
-    return files_dict
+    return chat_to_files_dict(chat)
 
 
 def lite_gen(
@@ -203,5 +197,4 @@ def lite_gen(
     messages = ai.start(prompt, preprompts["file_format"], step_name=curr_fn())
     chat = messages[-1].content.strip()
     memory[CODE_GEN_LOG_FILE] = chat
-    files_dict = chat_to_files_dict(chat)
-    return files_dict
+    return chat_to_files_dict(chat)

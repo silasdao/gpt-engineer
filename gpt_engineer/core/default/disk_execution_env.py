@@ -32,14 +32,13 @@ class DiskExecutionEnv(BaseExecutionEnv):
         return self.store.download()
 
     def popen(self, command: str) -> subprocess.Popen:
-        p = subprocess.Popen(
+        return subprocess.Popen(
             command,
             shell=True,
             cwd=self.store.working_dir,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
-        return p
 
     def run(self, command: str, timeout: Optional[int] = None) -> Tuple[str, str, int]:
         start = time.time()

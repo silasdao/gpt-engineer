@@ -88,20 +88,15 @@ def collect_learnings(
     try:
         send_learning(learnings)
     except RuntimeError:
-        # try to remove some parts of learning that might be too big
-        # rudderstack max event size is 32kb
-        max_size = 32 << 10  # 32KB in bytes
         current_size = len(learnings.to_json().encode("utf-8"))  # get size in bytes
 
+        max_size = 32 << 10
         overflow = current_size - max_size
 
         # Add some extra characters for the "[REMOVED...]" string and for safety margin
         remove_length = overflow + len(f"[REMOVED {overflow} CHARACTERS]") + 100
 
-        learnings.logs = (
-            learnings.logs[:-remove_length]
-            + f"\n\n[REMOVED {remove_length} CHARACTERS]"
-        )
+        learnings.logs = f"{learnings.logs[:-remove_length]}\n\n[REMOVED {remove_length} CHARACTERS]"
 
         print(
             "WARNING: learning too big, removing some parts. "
@@ -160,6 +155,5 @@ def collect_and_send_human_review(
     """
 
     """Collects and stores human review of the code"""
-    review = human_review_input()
-    if review:
+    if review := human_review_input():
         collect_learnings(prompt, model, temperature, config, memory, review)

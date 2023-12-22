@@ -114,9 +114,7 @@ class DisplayablePath(object):
         Returns:
             str: The display name.
         """
-        if self.path.is_dir():
-            return self.path.name + "/"
-        return self.path.name
+        return f"{self.path.name}/" if self.path.is_dir() else self.path.name
 
     @classmethod
     def make_tree(
@@ -141,11 +139,10 @@ class DisplayablePath(object):
         yield displayable_root
 
         children = sorted(
-            list(path for path in root.iterdir() if criteria(path)),
+            [path for path in root.iterdir() if criteria(path)],
             key=lambda s: str(s).lower(),
         )
-        count = 1
-        for path in children:
+        for count, path in enumerate(children, start=1):
             is_last = count == len(children)
             if path.is_dir() and path.name not in IGNORE_FOLDERS:
                 yield from cls.make_tree(
@@ -153,7 +150,6 @@ class DisplayablePath(object):
                 )
             else:
                 yield cls(path, displayable_root, is_last)
-            count += 1
 
     @classmethod
     def _default_criteria(cls, path: Path) -> bool:
@@ -236,9 +232,7 @@ class TerminalFileSelector:
         for path in self.db_paths:
             n_digits = len(str(count))
             n_spaces = 3 - n_digits
-            if n_spaces < 0:
-                # We can only print 1000 aligned files. I think it is decent enough
-                n_spaces = 0
+            n_spaces = max(n_spaces, 0)
             spaces_str = " " * n_spaces
             if not path.path.is_dir():
                 print(f"{count}. {spaces_str}{path.displayable()}")
@@ -344,14 +338,7 @@ def ask_for_files(project_path: Union[str, Path]) -> FilesDict:
         )
     else:
         use_last_string = ""
-        if FILE_LIST_NAME in metadata_db:
-            use_last_string = (
-                "3. Use previous file list (available at "
-                + f"{os.path.join(metadata_db.path, FILE_LIST_NAME)})\n"
-            )
-            selection_number = 3
-        else:
-            selection_number = 1
+        selection_number = 1
         selection_str = "\n".join(
             [
                 "How do you want to select the files?",
@@ -364,8 +351,7 @@ def ask_for_files(project_path: Union[str, Path]) -> FilesDict:
         )
 
         file_path_list = []
-        selected_number_str = input(selection_str)
-        if selected_number_str:
+        if selected_number_str := input(selection_str):
             try:
                 selection_number = int(selected_number_str)
             except ValueError:
@@ -392,7 +378,7 @@ def ask_for_files(project_path: Union[str, Path]) -> FilesDict:
             for file_path in file_path_list
         ]
 
-        if not selection_number == 3:
+        if selection_number != 3:
             metadata_db[FILE_LIST_NAME] = "\n".join(
                 str(file_path) for file_path in file_path_list
             )

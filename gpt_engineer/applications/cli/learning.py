@@ -107,7 +107,7 @@ def human_review_input() -> Optional[Review]:
     )
     print()
 
-    ran = input("Did the generated code run at all? " + TERM_CHOICES)
+    ran = input(f"Did the generated code run at all? {TERM_CHOICES}")
     while ran not in ("y", "n", "u"):
         ran = input("Invalid input. Please enter y, n, or u: ")
 
@@ -116,13 +116,13 @@ def human_review_input() -> Optional[Review]:
 
     if ran == "y":
         perfect = input(
-            "Did the generated code do everything you wanted? " + TERM_CHOICES
+            f"Did the generated code do everything you wanted? {TERM_CHOICES}"
         )
         while perfect not in ("y", "n", "u"):
             perfect = input("Invalid input. Please enter y, n, or u: ")
 
         if perfect != "y":
-            useful = input("Did the generated code do anything useful? " + TERM_CHOICES)
+            useful = input(f"Did the generated code do anything useful? {TERM_CHOICES}")
             while useful not in ("y", "n", "u"):
                 useful = input("Invalid input. Please enter y, n, or u: ")
 
@@ -212,7 +212,7 @@ def extract_learning(
     Learning
         The extracted learning data.
     """
-    learning = Learning(
+    return Learning(
         prompt=prompt,
         model=model,
         temperature=temperature,
@@ -221,7 +221,6 @@ def extract_learning(
         logs=memory.to_json(),
         review=review,
     )
-    return learning
 
 
 def get_session() -> str:
@@ -244,4 +243,4 @@ def get_session() -> str:
             path.write_text(user_id)
         return user_id
     except IOError:
-        return "ephemeral_" + str(random.randint(0, 2**32))
+        return f"ephemeral_{random.randint(0, 2**32)}"

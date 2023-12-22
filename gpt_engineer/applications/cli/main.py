@@ -167,11 +167,7 @@ def main(
     else:
         code_gen_fn = gen_code
     # configure execution function
-    if self_heal_mode:
-        execution_fn = self_heal
-    else:
-        execution_fn = execute_entrypoint
-
+    execution_fn = self_heal if self_heal_mode else execute_entrypoint
     improve_fn = improve
 
     preprompts_path = get_preprompts_path(use_custom_preprompts, Path(project_path))
