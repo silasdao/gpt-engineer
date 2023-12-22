@@ -59,11 +59,7 @@ def print_results(results: list[TaskResult]):
     print(f"Total time: {total_time:.2f}s")
 
     correct_assertions = sum(
-        sum(
-            assertion_result
-            for assertion_result in task_result.assertion_results.values()
-        )
-        for task_result in results
+        sum(task_result.assertion_results.values()) for task_result in results
     )
     total_assertions = sum(
         len(task_result.assertion_results) for task_result in results
@@ -71,11 +67,7 @@ def print_results(results: list[TaskResult]):
     print(f"Total correct assertions: {correct_assertions}/{total_assertions}")
 
     correct_tasks = sum(
-        all(
-            assertion_result
-            for assertion_result in task_result.assertion_results.values()
-        )
-        for task_result in results
+        all(task_result.assertion_results.values()) for task_result in results
     )
     print(f"Correct tasks: {correct_tasks}/{len(results)}")
     print()

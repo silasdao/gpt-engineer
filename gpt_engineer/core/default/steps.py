@@ -46,8 +46,7 @@ def gen_code(
     messages = ai.start(setup_sys_prompt(preprompts), prompt, step_name=curr_fn())
     chat = messages[-1].content.strip()
     memory[CODE_GEN_LOG_FILE] = chat
-    files_dict = chat_to_files_dict(chat)
-    return files_dict
+    return chat_to_files_dict(chat)
 
 
 def gen_entrypoint(
@@ -166,7 +165,7 @@ def improve(
     problems = [""]
     # check edit correctness
     edit_refinements = 0
-    while len(problems) > 0 and edit_refinements <= MAX_EDIT_REFINEMENT_STEPS:
+    while problems and edit_refinements <= MAX_EDIT_REFINEMENT_STEPS:
         messages = ai.next(messages, step_name=curr_fn())
         chat = messages[-1].content.strip()
         problems = incorrect_edit(files_dict, chat)
